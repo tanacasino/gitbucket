@@ -1,12 +1,17 @@
 package servlet
 
-import java.io.File
+import java.io.{InputStream, File}
 import java.sql.Connection
 import org.apache.commons.io.FileUtils
-import javax.servlet.ServletContextEvent
+import javax.servlet._
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import util.Directory
+import javax.servlet.descriptor.JspConfigDescriptor
+import java.util.EventListener
+import java.util
+import javax.servlet.FilterRegistration.Dynamic
+import java.net.URL
 
 object AutoUpdate {
   
@@ -112,7 +117,7 @@ class AutoUpdateListener extends org.h2.server.web.DbStarter {
   private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
   
   override def contextInitialized(event: ServletContextEvent): Unit = {
-    super.contextInitialized(event)
+    super.contextInitialized(createServletContextEventWrapper(event.getServletContext))
     logger.debug("H2 started")
     
     logger.debug("Start schema update")
@@ -136,5 +141,113 @@ class AutoUpdateListener extends org.h2.server.web.DbStarter {
     }
     logger.debug("End schema update")
   }
-  
+
+  private def createServletContextEventWrapper(servletContext: ServletContext): ServletContextEvent = {
+    new ServletContextEvent(new ServletContext() {
+      override def getInitParameter(name: String) = name match {
+        case "db.url" => s"jdbc:h2:${Directory.DatabaseHome}"
+        case _ => servletContext.getInitParameter(name)
+      }
+
+      def getContextPath: String = servletContext.getContextPath
+
+      def getContext(uripath: String): ServletContext = servletContext.getContext(uripath)
+
+      def getMajorVersion: Int = servletContext.getMajorVersion
+
+      def getMinorVersion: Int = servletContext.getMinorVersion
+
+      def getEffectiveMajorVersion: Int = servletContext.getEffectiveMajorVersion
+
+      def getEffectiveMinorVersion: Int = servletContext.getEffectiveMinorVersion
+
+      def getMimeType(file: String): String = servletContext.getMimeType(file)
+
+      def getResourcePaths(path: String): util.Set[String] = servletContext.getResourcePaths(path)
+
+      def getResource(path: String): URL = servletContext.getResource(path)
+
+      def getResourceAsStream(path: String): InputStream = servletContext.getResourceAsStream(path)
+
+      def getRequestDispatcher(path: String): RequestDispatcher = servletContext.getRequestDispatcher(path)
+
+      def getNamedDispatcher(name: String): RequestDispatcher = servletContext.getNamedDispatcher(name)
+
+      def getServlet(name: String): Servlet = servletContext.getServlet(name)
+
+      def getServlets: util.Enumeration[Servlet] = servletContext.getServlets
+
+      def getServletNames: util.Enumeration[String] = servletContext.getServletNames
+
+      def log(msg: String) = servletContext.log(msg)
+
+      def log(exception: Exception, msg: String) = servletContext.log(exception, msg)
+
+      def log(message: String, throwable: Throwable) = servletContext.log(message, throwable)
+
+      def getRealPath(path: String): String = servletContext.getRealPath(path)
+
+      def getServerInfo: String = servletContext.getServerInfo
+
+      def getInitParameterNames: util.Enumeration[String] = servletContext.getInitParameterNames
+
+      def setInitParameter(name: String, value: String): Boolean = servletContext.setInitParameter(name, value)
+
+      def getAttribute(name: String): AnyRef = servletContext.getAttribute(name)
+
+      def getAttributeNames: util.Enumeration[String] = servletContext.getAttributeNames
+
+      def setAttribute(name: String, `object`: scala.Any) = servletContext.setAttribute(name, `object`)
+
+      def removeAttribute(name: String) = servletContext.removeAttribute(name)
+
+      def getServletContextName: String = servletContext.getServletContextName
+
+      def addServlet(servletName: String, className: String): ServletRegistration.Dynamic = servletContext.addServlet(servletName, className)
+
+      def addServlet(servletName: String, servlet: Servlet): ServletRegistration.Dynamic = servletContext.addServlet(servletName, servlet)
+
+      def addServlet(servletName: String, servletClass: Class[_ <: Servlet]): ServletRegistration.Dynamic = servletContext.addServlet(servletName, servletClass)
+
+      def createServlet[T <: Servlet](clazz: Class[T]): T = servletContext.createServlet(clazz)
+
+      def getServletRegistration(servletName: String): ServletRegistration = servletContext.getServletRegistration(servletName)
+
+      def getServletRegistrations: util.Map[String, _ <: ServletRegistration] = servletContext.getServletRegistrations
+
+      def addFilter(filterName: String, className: String): Dynamic = servletContext.addFilter(filterName, className)
+
+      def addFilter(filterName: String, filter: Filter): Dynamic = servletContext.addFilter(filterName, filter)
+
+      def addFilter(filterName: String, filterClass: Class[_ <: Filter]): Dynamic = servletContext.addFilter(filterName, filterClass)
+
+      def createFilter[T <: Filter](clazz: Class[T]): T = servletContext.createFilter(clazz)
+
+      def getFilterRegistration(filterName: String): FilterRegistration = servletContext.getFilterRegistration(filterName)
+
+      def getFilterRegistrations: util.Map[String, _ <: FilterRegistration] = servletContext.getFilterRegistrations
+
+      def getSessionCookieConfig: SessionCookieConfig = servletContext.getSessionCookieConfig
+
+      def setSessionTrackingModes(sessionTrackingModes: util.Set[SessionTrackingMode]) = servletContext.setSessionTrackingModes(sessionTrackingModes)
+
+      def getDefaultSessionTrackingModes: util.Set[SessionTrackingMode] = servletContext.getDefaultSessionTrackingModes
+
+      def getEffectiveSessionTrackingModes: util.Set[SessionTrackingMode] = servletContext.getEffectiveSessionTrackingModes
+
+      def addListener(className: String) = servletContext.addListener(className)
+
+      def addListener[T <: EventListener](t: T) = servletContext.addListener(t)
+
+      def addListener(listenerClass: Class[_ <: EventListener]) = servletContext.addListener(listenerClass)
+
+      def createListener[T <: EventListener](clazz: Class[T]): T = servletContext.createListener(clazz)
+
+      def getJspConfigDescriptor: JspConfigDescriptor = servletContext.getJspConfigDescriptor
+
+      def getClassLoader: ClassLoader = servletContext.getClassLoader
+
+      def declareRoles(roleNames: String*): Unit = servletContext.declareRoles(roleNames: _*)
+    })
+  }
 }

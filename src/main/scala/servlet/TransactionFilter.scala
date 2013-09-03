@@ -3,6 +3,7 @@ package servlet
 import javax.servlet._
 import org.slf4j.LoggerFactory
 import javax.servlet.http.HttpServletRequest
+import util.Directory
 
 /**
  * Controls the transaction with the open session in view pattern.
@@ -32,7 +33,7 @@ class TransactionFilter extends Filter {
 
 object Database {
   def apply(context: ServletContext): scala.slick.session.Database =
-    scala.slick.session.Database.forURL(context.getInitParameter("db.url"),
+    scala.slick.session.Database.forURL(s"jdbc:h2:${Directory.DatabaseHome}",
         context.getInitParameter("db.user"),
         context.getInitParameter("db.password"))
 }
