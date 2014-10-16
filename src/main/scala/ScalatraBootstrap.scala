@@ -1,4 +1,4 @@
-import _root_.servlet.{PluginActionInvokeFilter, BasicAuthenticationFilter, TransactionFilter}
+import _root_.servlet.{AccessTokenAuthenticationFilter, PluginActionInvokeFilter, BasicAuthenticationFilter, TransactionFilter}
 import app._
 //import jp.sf.amateras.scalatra.forms.ValidationJavaScriptProvider
 import org.scalatra._
@@ -14,6 +14,8 @@ class ScalatraBootstrap extends LifeCycle {
     context.getFilterRegistration("pluginActionInvokeFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/*")
     context.addFilter("basicAuthenticationFilter", new BasicAuthenticationFilter)
     context.getFilterRegistration("basicAuthenticationFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/git/*")
+    context.addFilter("accessTokenAuthenticationFilter", new AccessTokenAuthenticationFilter)
+    context.getFilterRegistration("accessTokenAuthenticationFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/api/v3/*")
 
     // Register controllers
     context.mount(new IndexController, "/")
