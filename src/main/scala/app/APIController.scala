@@ -1,6 +1,6 @@
 package app
 
-import org.scalatra.{Ok, InternalServerError}
+import org.scalatra.Ok
 import org.slf4j.LoggerFactory
 
 
@@ -31,7 +31,13 @@ trait APIControllerBase extends ControllerBase {
    * @see https://developer.github.com/v3/rate_limit/#get-your-current-rate-limit-status
    */
   get("/api/v3/rate_limit") {
-    Ok("/api/v3/rate_limit")
+    contentType = formats("json")
+    val limit = Limit(5000, 4999, (System.currentTimeMillis / 1000))
+    val rateLimit = RateLimit(Resources(limit, limit), limit)
+    response.setHeader("X-RateLimit-Limit", "5000")
+    response.setHeader("X-RateLimit-Remaining", "4999")
+    response.setHeader("X-RateLimit-Reset", (System.currentTimeMillis / 1000).toString)
+    Ok(org.json4s.jackson.Serialization.write(rateLimit))
   }
 
 
@@ -94,3 +100,9 @@ trait APIControllerBase extends ControllerBase {
 
 }
 
+
+
+// TODO Move other file
+case class Limit(limit: Int, remaining: Int, reset: Long)
+case class Resources(core: Limit, search: Limit)
+case class RateLimit(resources: Resources, rate: Limit)
