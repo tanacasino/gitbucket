@@ -1,12 +1,13 @@
 package app
 
-import org.scalatra.Ok
+import org.scalatra.{BadRequest, Ok}
 import org.slf4j.LoggerFactory
+import service.AccountService
 
 
 class APIController extends APIControllerBase
 
-trait APIControllerBase extends ControllerBase {
+trait APIControllerBase extends ControllerBase with AccountService {
 
   private val logger = LoggerFactory.getLogger(classOf[APIControllerBase])
 
@@ -18,7 +19,29 @@ trait APIControllerBase extends ControllerBase {
    * @see https://developer.github.com/v3/users/#get-the-authenticated-user
    */
   get("/api/v3/user") {
-    Ok("/api/v3/user")
+    case class User(
+      login: String,
+      id: Long,
+      avatar_url: String,
+      gravatar_id: String,
+      url: String,
+      `type`: String,
+      name: String,
+      email: String)
+
+    context.loginAccount.map { account =>
+      val user = User(id = 0,
+           login = account.userName,
+           avatar_url = "avatar_url_dummy",
+           gravatar_id = "gravatar_id_dummy",
+           url = "url_dummy_string",
+           `type` = "User",
+           name = account.fullName,
+           email = account.mailAddress
+      )
+      contentType = formats("json")
+      Ok(org.json4s.jackson.Serialization.write(user))
+    } getOrElse(BadRequest())
   }
 
 
