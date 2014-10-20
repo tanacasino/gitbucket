@@ -3,15 +3,12 @@ package servlet
 import javax.servlet._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
-import org.slf4j.LoggerFactory
 import service.api.AccessTokenService
 import util.Keys
 
 
 class AccessTokenAuthenticationFilter extends Filter with AccessTokenService {
   private val tokenHeaderPrefix = "token "
-
-  private val logger = LoggerFactory.getLogger(classOf[BasicAuthenticationFilter])
 
   override def init(filterConfig: FilterConfig): Unit = {}
 
@@ -20,23 +17,23 @@ class AccessTokenAuthenticationFilter extends Filter with AccessTokenService {
   override def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
     implicit val request = req.asInstanceOf[HttpServletRequest]
     implicit val session = req.getAttribute(Keys.Request.DBSession).asInstanceOf[slick.jdbc.JdbcBackend#Session]
-
     val response = res.asInstanceOf[HttpServletResponse]
+    // TODO Basic Authentication Support
     val authorization = Option(request.getHeader("Authorization"))
-
-    logger.error("Authorization : " + authorization.toString)
-    val accessToken = authorization.filter(_.startsWith(tokenHeaderPrefix)).map(_.stripPrefix(tokenHeaderPrefix))
-    accessToken match {
+    authorization.filter(_.startsWith(tokenHeaderPrefix)).map(_.stripPrefix(tokenHeaderPrefix)) match {
       case Some(token) =>
         authenticate(token) match {
           case Some(account) =>
-            request.getSession.setAttribute(Keys.Session.LoginAccount, account)
+            // For private api (require auth)
+          request.getSession.setAttribute(Keys.Session.LoginAccount, account)
             chain.doFilter(req, res)
-          case None => response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
-
+          case None =>
+            // Authentication Error
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
         }
-      case None => response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
-
+      case None =>
+        // For public api
+        chain.doFilter(req, res)
     }
   }
 
