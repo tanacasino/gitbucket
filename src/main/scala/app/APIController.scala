@@ -1,5 +1,6 @@
 package app
 
+import org.joda.time.DateTime
 import org.json4s.jackson.Serialization
 import org.scalatra.{BadRequest, Ok}
 import org.slf4j.LoggerFactory
@@ -163,8 +164,31 @@ case class Repo(id: Long,
                 description: String,
                 `private`: Boolean,
                 fork: Boolean,
-                url: String
+                url: String,
+                html_url: String,
+                clone_url: String,
+                git_url: String,
+                ssh_url: String,
+                svn_url: String,
+                mirror_url: String,
+                homepage: String,
+                language: String,
+                forks_count: Int,
+                stargazers_count: Int,
+                watchers_count: Int,
+                size: Int,
+                default_branch: String,
+                open_issues_count: Int,
+                has_issues: Boolean,
+                has_wiki: Boolean,
+                has_pages: Boolean,
+                has_downloads: Boolean,
+                pushed_at: DateTime,
+                created_at: DateTime,
+                updated_at: DateTime,
+                permissions: Permission
                 )
+
 object Repo {
   def apply(account: Account, repo: RepositoryInfo): Repo = {
     new Repo(
@@ -175,10 +199,35 @@ object Repo {
       description = repo.repository.description.getOrElse(""),
       `private` = repo.repository.isPrivate,
       fork = repo.repository.originRepositoryName.isDefined,
-      url = "dummy_url"
+      url = "dummy_url",
+      html_url =  "https://github.com/octocat/Hello-World",
+      clone_url = "https://github.com/octocat/Hello-World.git",
+      git_url = "git://github.com/octocat/Hello-World.git",
+      ssh_url = "git@github.com:octocat/Hello-World.git",
+      svn_url = "https://svn.github.com/octocat/Hello-World",
+      mirror_url = "git://git.example.com/octocat/Hello-World",
+      homepage = "https://github.com",
+      language = null,
+      forks_count = 9,
+      stargazers_count = 80,
+      watchers_count = 80,
+      size = 108,
+      default_branch = "master",
+      open_issues_count = 0,
+      has_issues = true,
+      has_wiki = true,
+      has_pages = false,
+      has_downloads = true,
+      pushed_at = new DateTime("2011-01-26T19:06:43Z"),
+      created_at = new DateTime("2011-01-26T19:01:12Z"),
+      updated_at = new DateTime("2011-01-26T19:14:43Z"),
+      permissions = Permission(admin = false, push = false, pull = true)
     )
   }
 }
+
+case class Permission(admin: Boolean, push: Boolean, pull: Boolean)
+
 /*
 {
   "id": 1296269,
